@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[70vh] md:h-[85vh] overflow-hidden">
+      <section className="relative h-screen overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1920&h=1080&fit=crop"
           alt="Beautiful living room with Loaf sofa"
@@ -18,16 +18,17 @@ export default function Home() {
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
-        <div className="absolute inset-0 flex items-center">
+        {/* Content in the middle of the hero section */}
+        {/* <div className="absolute inset-0 flex items-center">
           <div className="container-wide">
             <div className="max-w-xl text-white">
               <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm mb-4">
                 New Collection
               </span>
               <h1 className="font-[family-name:var(--font-display)] text-4xl md:text-6xl lg:text-7xl mb-4 leading-tight">
-                The Art of
+                Timeless
                 <br />
-                <em>Loafing</em>
+                <em>Opus&Oak</em>
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-8 max-w-md">
                 Seriously comfy sofas, beautiful beds and laid-back furniture
@@ -48,7 +49,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </section>
 
       {/* Trust Bar */}
