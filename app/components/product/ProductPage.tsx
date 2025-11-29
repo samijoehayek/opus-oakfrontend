@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Heart,
   Share2,
@@ -47,10 +48,34 @@ export function ProductPage({ product }: ProductPageProps) {
     return selectedSize.price + (selectedFabric?.price || 0);
   }, [selectedSize, selectedFabric]);
 
+  const whyWeLove = [
+    {
+      image:
+        "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=600&fit=crop",
+      title: "Timeless Design",
+      description:
+        "Crafted with clean lines and elegant proportions that complement any interior style.",
+    },
+    {
+      image:
+        "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=600&h=600&fit=crop",
+      title: "Premium Materials",
+      description:
+        "Only the finest fabrics and sustainably sourced hardwoods make it into our pieces.",
+    },
+    {
+      image:
+        "https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&h=600&fit=crop",
+      title: "Built to Last",
+      description:
+        "Handcrafted by master artisans with techniques passed down through generations.",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
+    <div className="min-h-screen bg-[var(--color-background)] pt-[100px]">
       {/* Breadcrumbs */}
-      <div className="container-wide py-4">
+      <div className="w-full px-4 md:px-8 lg:px-12 py-4">
         <nav className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
           <Link
             href="/"
@@ -78,18 +103,18 @@ export function ProductPage({ product }: ProductPageProps) {
       </div>
 
       {/* Main product section */}
-      <div className="container-wide pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
-          {/* Gallery */}
-          <div className="lg:sticky lg:top-32 lg:self-start">
+      <div className="w-full px-4 md:px-8 lg:px-12 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* Gallery - Takes 7 columns */}
+          <div className="lg:col-span-7 lg:sticky lg:top-[120px] lg:self-start">
             <ProductGallery
               images={product.images}
               productName={product.name}
             />
           </div>
 
-          {/* Product info */}
-          <div className="space-y-8">
+          {/* Product info - Takes 5 columns */}
+          <div className="lg:col-span-5 space-y-8">
             {/* Header */}
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -152,7 +177,7 @@ export function ProductPage({ product }: ProductPageProps) {
                 <button
                   onClick={() => setIsWishlisted(!isWishlisted)}
                   className={cn(
-                    "h-16 w-16 flex-shrink-0 rounded-lg border-2 flex items-center justify-center transition-colors",
+                    "h-16 w-16 flex-shrink-0 border-2 flex items-center justify-center transition-colors",
                     isWishlisted
                       ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white"
                       : "border-[var(--color-border)] hover:border-[var(--color-charcoal)]"
@@ -182,7 +207,7 @@ export function ProductPage({ product }: ProductPageProps) {
 
             {/* Quick info */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-start gap-3 p-4 bg-[var(--color-cream-dark)] rounded-xl">
+              <div className="flex items-start gap-3 p-4 bg-[var(--color-cream-dark)]">
                 <Truck className="h-5 w-5 text-[var(--color-charcoal)] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-[var(--color-charcoal)] text-sm">
@@ -193,7 +218,7 @@ export function ProductPage({ product }: ProductPageProps) {
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-4 bg-[var(--color-cream-dark)] rounded-xl">
+              <div className="flex items-start gap-3 p-4 bg-[var(--color-cream-dark)]">
                 <RotateCcw className="h-5 w-5 text-[var(--color-charcoal)] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-[var(--color-charcoal)] text-sm">
@@ -204,7 +229,7 @@ export function ProductPage({ product }: ProductPageProps) {
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-4 bg-[var(--color-cream-dark)] rounded-xl">
+              <div className="flex items-start gap-3 p-4 bg-[var(--color-cream-dark)]">
                 <Shield className="h-5 w-5 text-[var(--color-charcoal)] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-[var(--color-charcoal)] text-sm">
@@ -217,12 +242,12 @@ export function ProductPage({ product }: ProductPageProps) {
               </div>
               <Link
                 href="/showrooms"
-                className="flex items-start gap-3 p-4 bg-[var(--color-cream-dark)] rounded-xl hover:bg-[var(--color-sand)] transition-colors"
+                className="flex items-start gap-3 p-4 bg-[var(--color-cream-dark)] hover:bg-[var(--color-sand)] transition-colors"
               >
                 <MapPin className="h-5 w-5 text-[var(--color-charcoal)] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-[var(--color-charcoal)] text-sm">
-                    Visit a Shack
+                    Visit a Showroom
                   </p>
                   <p className="text-xs text-[var(--color-muted)]">
                     Try before you buy
@@ -276,19 +301,19 @@ export function ProductPage({ product }: ProductPageProps) {
                       {selectedSize.label}
                     </h4>
                     <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)] rounded-lg">
+                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
                         <span className="text-[var(--color-muted)]">Width</span>
                         <span className="font-medium">
                           {selectedSize.dimensions.width}cm
                         </span>
                       </div>
-                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)] rounded-lg">
+                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
                         <span className="text-[var(--color-muted)]">Depth</span>
                         <span className="font-medium">
                           {selectedSize.dimensions.depth}cm
                         </span>
                       </div>
-                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)] rounded-lg">
+                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
                         <span className="text-[var(--color-muted)]">
                           Height
                         </span>
@@ -296,7 +321,7 @@ export function ProductPage({ product }: ProductPageProps) {
                           {selectedSize.dimensions.height}cm
                         </span>
                       </div>
-                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)] rounded-lg">
+                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
                         <span className="text-[var(--color-muted)]">
                           Seat Height
                         </span>
@@ -311,7 +336,7 @@ export function ProductPage({ product }: ProductPageProps) {
                           Bed Dimensions
                         </h4>
                         <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="flex justify-between p-3 bg-[var(--color-cream-dark)] rounded-lg">
+                          <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
                             <span className="text-[var(--color-muted)]">
                               Width
                             </span>
@@ -319,7 +344,7 @@ export function ProductPage({ product }: ProductPageProps) {
                               {selectedSize.bedDimensions.width}cm
                             </span>
                           </div>
-                          <div className="flex justify-between p-3 bg-[var(--color-cream-dark)] rounded-lg">
+                          <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
                             <span className="text-[var(--color-muted)]">
                               Length
                             </span>
@@ -337,7 +362,7 @@ export function ProductPage({ product }: ProductPageProps) {
               <AccordionItem id="delivery">
                 <AccordionTrigger id="delivery">
                   <span className="text-lg font-medium">
-                    Delivery & Returns
+                    Delivery &amp; Returns
                   </span>
                 </AccordionTrigger>
                 <AccordionContent id="delivery">
@@ -385,9 +410,38 @@ export function ProductPage({ product }: ProductPageProps) {
         </div>
       </div>
 
+      {/* Why We Love Section */}
+      <div className="bg-[var(--color-cream-dark)] py-20 md:py-28">
+        <div className="w-full px-4 md:px-8 lg:px-12">
+          <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl text-[var(--color-charcoal)] text-center mb-16">
+            Why We Love the {product.name}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-6xl mx-auto">
+            {whyWeLove.map((item, index) => (
+              <div key={index} className="text-center">
+                <div className="relative aspect-square mb-6 overflow-hidden">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <h3 className="font-[family-name:var(--font-display)] text-xl md:text-2xl text-[var(--color-charcoal)] mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-[var(--color-warm-gray)] text-sm md:text-base leading-relaxed max-w-xs mx-auto">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Reviews section */}
       <div className="bg-white py-16">
-        <div className="container-wide">
+        <div className="w-full px-4 md:px-8 lg:px-12">
           <h2 className="font-[family-name:var(--font-display)] text-2xl md:text-3xl text-[var(--color-charcoal)] mb-8">
             Customer Reviews
           </h2>
@@ -400,13 +454,13 @@ export function ProductPage({ product }: ProductPageProps) {
       </div>
 
       {/* Related products */}
-      <div className="container-wide py-16">
+      <div className="w-full px-4 md:px-8 lg:px-12 py-16">
         <RelatedProducts products={product.relatedProducts} />
       </div>
 
       {/* Made in section */}
       <div className="bg-[var(--color-cream-dark)] py-16">
-        <div className="container-wide text-center">
+        <div className="w-full px-4 md:px-8 lg:px-12 text-center">
           <p className="text-sm text-[var(--color-muted)] mb-2">
             Handcrafted in
           </p>
