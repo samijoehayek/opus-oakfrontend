@@ -3,12 +3,22 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 
-export function SofasHero() {
+interface CategoryHeroProps {
+  title: string;
+  description: string;
+  heroImage: string;
+}
+
+export function CategoryHero({
+  title,
+  description,
+  heroImage,
+}: CategoryHeroProps) {
   return (
     <section className="relative h-[50vh] md:h-[60vh] overflow-hidden">
       <Image
-        src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1920&h=1080&fit=crop"
-        alt="Luxury sofas collection"
+        src={heroImage}
+        alt={`${title} collection`}
         fill
         priority
         className="object-cover"
@@ -22,11 +32,10 @@ export function SofasHero() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <h1 className="font-[family-name:var(--font-display)] text-4xl md:text-6xl lg:text-7xl mb-4">
-            Sofas
+            {title}
           </h1>
           <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-            Handcrafted with precision, designed for those who appreciate the
-            art of refined living.
+            {description}
           </p>
         </motion.div>
       </div>

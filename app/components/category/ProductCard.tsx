@@ -6,27 +6,13 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { formatPrice } from "@/app/lib/utils";
+import { CategoryProduct } from "@/app/data/categories";
 
-export interface SofaProduct {
-  id: string;
-  name: string;
-  slug: string;
-  tagline: string;
-  price: number;
-  originalPrice?: number;
-  images: {
-    src: string;
-    alt: string;
-  }[];
-  badge?: string;
-  fabricCount?: number;
+interface ProductCardProps {
+  product: CategoryProduct;
 }
 
-interface SofaCardProps {
-  product: SofaProduct;
-}
-
-export function SofaCard({ product }: SofaCardProps) {
+export function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
@@ -38,10 +24,8 @@ export function SofaCard({ product }: SofaCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image container */}
       <Link href={`/products/${product.slug}`} className="block relative">
         <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-cream-dark)]">
-          {/* Primary image */}
           <Image
             src={product.images[0].src}
             alt={product.images[0].alt}
@@ -52,7 +36,6 @@ export function SofaCard({ product }: SofaCardProps) {
             )}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          {/* Secondary image (shown on hover) */}
           {hasSecondImage && (
             <Image
               src={product.images[1].src}
@@ -66,14 +49,12 @@ export function SofaCard({ product }: SofaCardProps) {
             />
           )}
 
-          {/* Badge */}
           {product.badge && (
             <div className="absolute top-4 left-4 bg-[var(--color-charcoal)] text-white text-xs uppercase tracking-wide px-3 py-1.5">
               {product.badge}
             </div>
           )}
 
-          {/* Wishlist button */}
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -99,7 +80,6 @@ export function SofaCard({ product }: SofaCardProps) {
         </div>
       </Link>
 
-      {/* Product info */}
       <div className="mt-4 space-y-1">
         <Link href={`/products/${product.slug}`}>
           <h3 className="font-[family-name:var(--font-display)] text-lg md:text-xl text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)] transition-colors">

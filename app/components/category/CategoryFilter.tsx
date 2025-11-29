@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
+import { SlidersHorizontal, ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 
-interface SofasFilterProps {
+interface CategoryFilterProps {
   totalProducts: number;
   sortBy: string;
   onSortChange: (value: string) => void;
@@ -17,23 +17,21 @@ const sortOptions = [
   { label: "Newest", value: "newest" },
 ];
 
-export function SofasFilter({
+export function CategoryFilter({
   totalProducts,
   sortBy,
   onSortChange,
-}: SofasFilterProps) {
+}: CategoryFilterProps) {
   const [sortOpen, setSortOpen] = useState(false);
 
   return (
     <div className="border-b border-[var(--color-border)]">
       <div className="w-full px-4 md:px-8 lg:px-12 py-4">
         <div className="flex items-center justify-between">
-          {/* Left - Product count */}
           <p className="text-sm text-[var(--color-muted)]">
             {totalProducts} {totalProducts === 1 ? "product" : "products"}
           </p>
 
-          {/* Right - Sort */}
           <div className="relative">
             <button
               onClick={() => setSortOpen(!sortOpen)}
