@@ -125,7 +125,7 @@ export function Header() {
 
           {/* Center - Logo */}
           <Link href="/" className="flex items-center justify-center">
-            <span className="font-[family-name:var(--font-display)] text-3xl lg:text-4xl font-medium tracking-tight text-[var(--color-charcoal)]">
+            <span className="font-[family-name:var(--font-display)] text-3xl lg:text-5xl font-medium tracking-tight text-[var(--color-charcoal)]">
               Opus&Oak
             </span>
           </Link>

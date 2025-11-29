@@ -4,6 +4,7 @@ import { ArrowRight, Truck, RotateCcw, Shield, Sparkles } from "lucide-react";
 import { Button } from "@/app/components/ui/Button";
 import { featuredProducts } from "@/app/data/products";
 import { formatPrice } from "@/app/lib/utils";
+import { CustomFurnitureSection } from "./components/layout/CustomFurniture";
 
 export default function Home() {
   return (
@@ -77,69 +78,56 @@ export default function Home() {
       </section>
 
       {/* Category Grid */}
-      <section className="container-wide py-16 md:py-24">
-        <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl text-center mb-4">
+      <section className="w-full px-4 md:px-8 lg:px-12 py-16 md:py-24">
+        <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl text-center mb-12">
           Shop by Category
         </h2>
-        <p className="text-[var(--color-muted)] text-center mb-12 max-w-xl mx-auto">
-          From squishy sofas to beautiful beds, find the perfect piece for your
-          laid-back lifestyle.
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[
             {
               name: "Sofas",
               href: "/sofas",
               image:
-                "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=400&fit=crop",
+                "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=800&fit=crop",
             },
             {
               name: "Beds",
               href: "/beds",
               image:
-                "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&h=400&fit=crop",
+                "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&h=800&fit=crop",
+            },
+            {
+              name: "Tables",
+              href: "/tables",
+              image:
+                "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600&h=800&fit=crop",
             },
             {
               name: "Armchairs",
               href: "/armchairs",
               image:
-                "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&h=400&fit=crop",
-            },
-            {
-              name: "Furniture",
-              href: "/furniture",
-              image:
-                "https://images.unsplash.com/photo-1532372320572-cda25653a26d?w=600&h=400&fit=crop",
+                "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&h=800&fit=crop",
             },
           ].map((category) => (
-            <Link
-              key={category.name}
-              href={category.href}
-              className="group relative aspect-[4/5] rounded-2xl overflow-hidden"
-            >
-              <Image
-                src={category.image}
-                alt={category.name}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <h3 className="font-[family-name:var(--font-display)] text-xl md:text-2xl text-white mb-2">
-                  {category.name}
-                </h3>
-                <span className="inline-flex items-center gap-1 text-sm text-white/80 group-hover:text-white transition-colors">
-                  Shop now
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </span>
+            <Link key={category.name} href={category.href} className="group">
+              <div className="relative aspect-[3/4] md:aspect-[2/3] lg:aspect-[3/5] overflow-hidden">
+                <Image
+                  src={category.image}
+                  alt={category.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
               </div>
+              <p className="mt-4 text-center text-sm md:text-base text-[var(--color-charcoal)] group-hover:underline transition-all">
+                {category.name} – Opus&Oak
+              </p>
             </Link>
           ))}
         </div>
       </section>
 
       {/* Featured Product */}
-      <section className="bg-[var(--color-cream-dark)]">
+      {/* <section className="bg-[var(--color-cream-dark)]">
         <div className="container-wide py-16 md:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
@@ -191,10 +179,10 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Featured Products Grid */}
-      <section className="container-wide py-16 md:py-24">
+      {/* <section className="container-wide py-16 md:py-24">
         <div className="flex items-center justify-between mb-12">
           <div>
             <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl mb-2">
@@ -247,10 +235,32 @@ export default function Home() {
             </Button>
           </Link>
         </div>
+      </section> */}
+
+      <CustomFurnitureSection />
+
+      {/* About Section */}
+      <section className="container-wide py-16 md:py-24">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl mb-6">
+            Made by hand, built to last
+          </h2>
+          <p className="text-[var(--color-warm-gray)] text-lg leading-relaxed mb-8">
+            We use Blighty&apos;s best to handcraft our wares. Generations of
+            know-how go into every pleat, fold and frame. Our winning recipe of
+            feather, foam and fibre makes for less plumping, more slumping.
+          </p>
+          <Link href="/about">
+            <Button variant="secondary">
+              Our story
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {/* Showroom CTA */}
-      <section className="relative h-[60vh] overflow-hidden">
+      {/* <section className="relative h-[60vh] overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1920&h=1080&fit=crop"
           alt="Loaf Showroom"
@@ -275,27 +285,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* About Section */}
-      <section className="container-wide py-16 md:py-24">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl mb-6">
-            Made by hand, built to last
-          </h2>
-          <p className="text-[var(--color-warm-gray)] text-lg leading-relaxed mb-8">
-            We use Blighty&apos;s best to handcraft our wares. Generations of
-            know-how go into every pleat, fold and frame. Our winning recipe of
-            feather, foam and fibre makes for less plumping, more slumping.
-          </p>
-          <Link href="/about">
-            <Button variant="secondary">
-              Our story
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      </section> */}
     </div>
   );
 }
