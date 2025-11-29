@@ -2,22 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  Search,
-  Heart,
-  ShoppingBag,
-  User,
-  Menu,
-  X,
-  ChevronDown,
-} from "lucide-react";
+import { Search, Heart, ShoppingBag, User, Menu, X } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import { navigationItems } from "@/app/data/products";
 import { Button } from "@/app/components/ui/Button";
+
+const navigationItems = [
+  { label: "Sofas", href: "/sofas" },
+  { label: "Armchairs", href: "/armchairs" },
+  { label: "Beds", href: "/beds" },
+  { label: "Tables", href: "/tables" },
+  { label: "Accessories", href: "/accessories" },
+];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -64,48 +62,13 @@ export function Header() {
           <div className="hidden lg:flex items-center">
             <nav className="flex items-center gap-0">
               {navigationItems.map((item) => (
-                <div
+                <Link
                   key={item.label}
-                  className="relative"
-                  onMouseEnter={() => setActiveDropdown(item.label)}
-                  onMouseLeave={() => setActiveDropdown(null)}
+                  href={item.href}
+                  className="px-3 py-2 text-base font-medium transition-colors hover:text-[var(--color-primary)]"
                 >
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-1 px-3 py-2 text-base font-medium transition-colors hover:text-[var(--color-primary)]",
-                      activeDropdown === item.label &&
-                        "text-[var(--color-primary)]"
-                    )}
-                  >
-                    {item.label}
-                    {item.children && (
-                      <ChevronDown
-                        className={cn(
-                          "h-4 w-4 transition-transform",
-                          activeDropdown === item.label && "rotate-180"
-                        )}
-                      />
-                    )}
-                  </Link>
-
-                  {/* Dropdown */}
-                  {item.children && activeDropdown === item.label && (
-                    <div className="absolute left-0 top-full pt-2 animate-fade-in">
-                      <div className="bg-white rounded-lg shadow-large border border-[var(--color-border)] min-w-[200px] py-2">
-                        {item.children.map((child) => (
-                          <Link
-                            key={child.label}
-                            href={child.href}
-                            className="block px-4 py-2 text-sm hover:bg-[var(--color-cream-dark)] transition-colors"
-                          >
-                            {child.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  {item.label}
+                </Link>
               ))}
             </nav>
           </div>
@@ -126,7 +89,7 @@ export function Header() {
           {/* Center - Logo */}
           <Link href="/" className="flex items-center justify-center">
             <span className="font-[family-name:var(--font-display)] text-3xl lg:text-5xl font-medium tracking-tight text-[var(--color-charcoal)]">
-              Opus&Oak
+              Opus&amp;Oak
             </span>
           </Link>
 
@@ -169,7 +132,6 @@ export function Header() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
-                  {item.children && <ChevronDown className="h-5 w-5" />}
                 </Link>
               </div>
             ))}
