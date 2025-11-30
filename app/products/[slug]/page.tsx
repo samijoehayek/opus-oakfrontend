@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ProductPage } from "@/app/components/product/ProductPage";
-import { mockProduct } from "@/app/data/products";
+import { ProductPage } from "@/components/product/ProductPage";
+import { mockProduct } from "@/data/products";
 
 // In a real app, this would fetch from your backend
 async function getProduct(slug: string) {

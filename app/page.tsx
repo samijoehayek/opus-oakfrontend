@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Truck, RotateCcw, Shield, Sparkles } from "lucide-react";
-import { Button } from "@/app/components/ui/Button";
-import { featuredProducts } from "@/app/data/products";
-import { formatPrice } from "@/app/lib/utils";
-import { CustomFurnitureSection } from "./components/layout/CustomFurniture";
+import { Button } from "@/components/ui/Button";
+import { featuredProducts } from "@/data/products";
+import { formatPrice } from "@/lib/utils";
+import { CustomFurnitureSection } from "../components/layout/CustomFurniture";
 
 export default function Home() {
   return (
