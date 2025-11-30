@@ -98,9 +98,11 @@ export function Header() {
             <button className="p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors">
               <Search className="h-6 w-6" />
             </button>
-            <button className="hidden sm:block p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors">
-              <User className="h-6 w-6" />
-            </button>
+            <Link href="/auth">
+              <button className="hidden sm:block p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors">
+                <User className="h-6 w-6" />
+              </button>
+            </Link>
             <button className="hidden sm:block p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors relative">
               <Heart className="h-6 w-6" />
               <span className="absolute top-0 right-0 h-4.5 w-4.5 bg-[var(--color-primary)] text-white text-[11px] font-medium rounded-full flex items-center justify-center">
