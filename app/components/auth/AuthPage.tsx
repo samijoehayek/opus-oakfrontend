@@ -1,28 +1,115 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Check } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Check, AlertCircle, X } from "lucide-react";
 import { cn } from "@/app/lib/utils";
+import { useAuth } from "@/app/context/AuthContext";
 
 type AuthMode = "login" | "register";
 
+interface FormErrors {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  firstName?: string;
+  lastName?: string;
+  general?: string;
+}
+
+// Password requirements checker
+const checkPasswordRequirements = (password: string) => ({
+  minLength: password.length >= 8,
+  hasUppercase: /[A-Z]/.test(password),
+  hasLowercase: /[a-z]/.test(password),
+  hasNumberOrSpecial: /(\d|\W)/.test(password),
+});
+
 export function AuthPage() {
+  const router = useRouter();
+  const {
+    login,
+    register,
+    isAuthenticated,
+    isLoading: authLoading,
+    error: authError,
+    clearError,
+  } = useAuth();
+
   const [mode, setMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [showPasswordRequirements, setShowPasswordRequirements] =
+    useState(false);
 
-  // Form states
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
     firstName: "",
     lastName: "",
+    phone: "",
     agreeToTerms: false,
   });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, router]);
+
+  // Sync auth error with form errors
+  useEffect(() => {
+    if (authError) {
+      setErrors((prev) => ({ ...prev, general: authError }));
+    }
+  }, [authError]);
+
+  const passwordRequirements = checkPasswordRequirements(formData.password);
+  const allPasswordRequirementsMet =
+    Object.values(passwordRequirements).every(Boolean);
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email";
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (mode === "register" && !allPasswordRequirementsMet) {
+      newErrors.password = "Password does not meet requirements";
+    }
+
+    // Register-specific validations
+    if (mode === "register") {
+      if (!formData.firstName.trim()) {
+        newErrors.firstName = "First name is required";
+      }
+      if (!formData.lastName.trim()) {
+        newErrors.lastName = "Last name is required";
+      }
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match";
+      }
+      if (!formData.agreeToTerms) {
+        newErrors.general = "You must agree to the terms and conditions";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -30,25 +117,77 @@ export function AuthPage() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    // Clear specific error when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+
+    // Clear general error
+    if (errors.general) {
+      setErrors((prev) => ({ ...prev, general: undefined }));
+      clearError();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    // Handle actual auth logic here
+
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      if (mode === "login") {
+        await login({
+          email: formData.email,
+          password: formData.password,
+        });
+      } else {
+        await register({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone || undefined,
+        });
+      }
+      // Redirect handled by useEffect
+    } catch (err) {
+      // Error handled by auth context
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const switchMode = (newMode: AuthMode) => {
     setMode(newMode);
     setShowPassword(false);
     setShowConfirmPassword(false);
+    setErrors({});
+    clearError();
+    setFormData({
+      email: "",
+      password: "",
+      confirmPassword: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      agreeToTerms: false,
+    });
   };
 
+  // Don't render form if already authenticated (prevents flash)
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[var(--color-background)] pt-[20px] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-[var(--color-charcoal)] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[var(--color-background)] pt-[120px]">
+    <div className="min-h-screen bg-[var(--color-background)] pt-[20px]">
       <div className="min-h-[calc(100vh-88px)] flex">
         {/* Left side - Image */}
         <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
@@ -67,7 +206,6 @@ export function AuthPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20" />
           </motion.div>
 
-          {/* Overlay content */}
           <div className="relative h-full flex flex-col justify-between p-12">
             <div />
             <motion.div
@@ -158,6 +296,32 @@ export function AuthPage() {
               ))}
             </motion.div>
 
+            {/* Error Alert */}
+            <AnimatePresence>
+              {errors.general && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-6 p-4 bg-red-50 border border-red-200 flex items-start gap-3"
+                >
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-700">{errors.general}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setErrors((prev) => ({ ...prev, general: undefined }));
+                      clearError();
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Form header */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -205,10 +369,19 @@ export function AuthPage() {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3.5 bg-transparent border border-[var(--color-border)] text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-charcoal)] transition-colors"
+                        className={cn(
+                          "w-full px-4 py-3.5 bg-transparent border text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none transition-colors",
+                          errors.firstName
+                            ? "border-red-400 focus:border-red-500"
+                            : "border-[var(--color-border)] focus:border-[var(--color-charcoal)]"
+                        )}
                         placeholder="John"
                       />
+                      {errors.firstName && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.firstName}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label
@@ -223,10 +396,19 @@ export function AuthPage() {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3.5 bg-transparent border border-[var(--color-border)] text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-charcoal)] transition-colors"
+                        className={cn(
+                          "w-full px-4 py-3.5 bg-transparent border text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none transition-colors",
+                          errors.lastName
+                            ? "border-red-400 focus:border-red-500"
+                            : "border-[var(--color-border)] focus:border-[var(--color-charcoal)]"
+                        )}
                         placeholder="Doe"
                       />
+                      {errors.lastName && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.lastName}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -244,11 +426,41 @@ export function AuthPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3.5 bg-transparent border border-[var(--color-border)] text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-charcoal)] transition-colors"
+                    className={cn(
+                      "w-full px-4 py-3.5 bg-transparent border text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none transition-colors",
+                      errors.email
+                        ? "border-red-400 focus:border-red-500"
+                        : "border-[var(--color-border)] focus:border-[var(--color-charcoal)]"
+                    )}
                     placeholder="you@example.com"
                   />
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+                  )}
                 </div>
+
+                {mode === "register" && (
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-xs font-medium uppercase tracking-wide text-[var(--color-muted)] mb-2"
+                    >
+                      Phone Number{" "}
+                      <span className="text-[var(--color-muted)]">
+                        (Optional)
+                      </span>
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3.5 bg-transparent border border-[var(--color-border)] text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-charcoal)] transition-colors"
+                      placeholder="+961 70 123 456"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label
@@ -264,8 +476,16 @@ export function AuthPage() {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3.5 pr-12 bg-transparent border border-[var(--color-border)] text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-charcoal)] transition-colors"
+                      onFocus={() =>
+                        mode === "register" && setShowPasswordRequirements(true)
+                      }
+                      onBlur={() => setShowPasswordRequirements(false)}
+                      className={cn(
+                        "w-full px-4 py-3.5 pr-12 bg-transparent border text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none transition-colors",
+                        errors.password
+                          ? "border-red-400 focus:border-red-500"
+                          : "border-[var(--color-border)] focus:border-[var(--color-charcoal)]"
+                      )}
                       placeholder="••••••••"
                     />
                     <button
@@ -280,6 +500,70 @@ export function AuthPage() {
                       )}
                     </button>
                   </div>
+                  {errors.password && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.password}
+                    </p>
+                  )}
+
+                  {/* Password requirements */}
+                  {mode === "register" && showPasswordRequirements && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-3 p-3 bg-[var(--color-cream-dark)] text-sm"
+                    >
+                      <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-muted)] mb-2">
+                        Password must contain:
+                      </p>
+                      <div className="space-y-1">
+                        {[
+                          { key: "minLength", label: "At least 8 characters" },
+                          {
+                            key: "hasUppercase",
+                            label: "One uppercase letter",
+                          },
+                          {
+                            key: "hasLowercase",
+                            label: "One lowercase letter",
+                          },
+                          {
+                            key: "hasNumberOrSpecial",
+                            label: "One number or special character",
+                          },
+                        ].map((req) => (
+                          <div
+                            key={req.key}
+                            className={cn(
+                              "flex items-center gap-2 text-xs transition-colors",
+                              passwordRequirements[
+                                req.key as keyof typeof passwordRequirements
+                              ]
+                                ? "text-green-600"
+                                : "text-[var(--color-muted)]"
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "w-4 h-4 rounded-full flex items-center justify-center transition-colors",
+                                passwordRequirements[
+                                  req.key as keyof typeof passwordRequirements
+                                ]
+                                  ? "bg-green-100"
+                                  : "bg-[var(--color-sand)]"
+                              )}
+                            >
+                              {passwordRequirements[
+                                req.key as keyof typeof passwordRequirements
+                              ] && <Check className="w-3 h-3" />}
+                            </div>
+                            {req.label}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
                 {mode === "register" && (
@@ -297,8 +581,12 @@ export function AuthPage() {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3.5 pr-12 bg-transparent border border-[var(--color-border)] text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-charcoal)] transition-colors"
+                        className={cn(
+                          "w-full px-4 py-3.5 pr-12 bg-transparent border text-[var(--color-charcoal)] placeholder:text-[var(--color-muted)] focus:outline-none transition-colors",
+                          errors.confirmPassword
+                            ? "border-red-400 focus:border-red-500"
+                            : "border-[var(--color-border)] focus:border-[var(--color-charcoal)]"
+                        )}
                         placeholder="••••••••"
                       />
                       <button
@@ -315,6 +603,11 @@ export function AuthPage() {
                         )}
                       </button>
                     </div>
+                    {errors.confirmPassword && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.confirmPassword}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -338,7 +631,6 @@ export function AuthPage() {
                         name="agreeToTerms"
                         checked={formData.agreeToTerms}
                         onChange={handleInputChange}
-                        required
                         className="peer sr-only"
                       />
                       <div
@@ -385,16 +677,16 @@ export function AuthPage() {
                 {/* Submit button */}
                 <motion.button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isSubmitting || authLoading}
                   className={cn(
                     "w-full py-4 bg-[var(--color-charcoal)] text-white font-medium tracking-wide uppercase text-sm flex items-center justify-center gap-2 transition-all",
-                    isLoading
+                    isSubmitting || authLoading
                       ? "opacity-70 cursor-not-allowed"
                       : "hover:bg-[var(--color-ink)]"
                   )}
                   whileTap={{ scale: 0.98 }}
                 >
-                  {isLoading ? (
+                  {isSubmitting || authLoading ? (
                     <motion.div
                       className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                       animate={{ rotate: 360 }}
@@ -483,7 +775,7 @@ export function AuthPage() {
                   "Save favorites & track orders",
                   "Personalized recommendations",
                   "Early access to sales",
-                ].map((benefit, index) => (
+                ].map((benefit) => (
                   <div
                     key={benefit}
                     className="flex items-center gap-3 text-sm text-[var(--color-warm-gray)]"

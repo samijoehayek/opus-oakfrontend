@@ -2,9 +2,19 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Heart, ShoppingBag, User, Menu, X } from "lucide-react";
+import {
+  Search,
+  Heart,
+  ShoppingBag,
+  User,
+  Menu,
+  X,
+  LogOut,
+  ChevronDown,
+} from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/Button";
+import { useAuth } from "@/app/context/AuthContext";
 
 const navigationItems = [
   { label: "Sofas", href: "/sofas" },
@@ -17,6 +27,9 @@ const navigationItems = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,7 +86,7 @@ export function Header() {
             </nav>
           </div>
 
-          {/* Mobile menu button - left on mobile */}
+          {/* Mobile menu button */}
           <button
             className="lg:hidden p-2 -ml-2 justify-self-start"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -98,11 +111,75 @@ export function Header() {
             <button className="p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors">
               <Search className="h-6 w-6" />
             </button>
-            <Link href="/auth">
-              <button className="hidden sm:block p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors">
-                <User className="h-6 w-6" />
-              </button>
-            </Link>
+
+            {/* User menu */}
+            <div className="relative">
+              {isAuthenticated ? (
+                <>
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="hidden sm:flex items-center gap-2 p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center text-xs font-medium">
+                      {user?.firstName?.charAt(0).toUpperCase()}
+                    </div>
+                  </button>
+
+                  {/* User dropdown */}
+                  {userMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setUserMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-[var(--color-border)] shadow-lg min-w-[200px]">
+                        <div className="px-4 py-3 border-b border-[var(--color-border)]">
+                          <p className="font-medium text-[var(--color-charcoal)]">
+                            {user?.firstName} {user?.lastName}
+                          </p>
+                          <p className="text-sm text-[var(--color-muted)]">
+                            {user?.email}
+                          </p>
+                        </div>
+                        <div className="py-2">
+                          <Link
+                            href="/account"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="block px-4 py-2 text-sm text-[var(--color-charcoal)] hover:bg-[var(--color-cream-dark)] transition-colors"
+                          >
+                            My Account
+                          </Link>
+                          <Link
+                            href="/orders"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="block px-4 py-2 text-sm text-[var(--color-charcoal)] hover:bg-[var(--color-cream-dark)] transition-colors"
+                          >
+                            Orders
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              logout();
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            Sign Out
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <Link href="/auth">
+                  <button className="hidden sm:block p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors">
+                    <User className="h-6 w-6" />
+                  </button>
+                </Link>
+              )}
+            </div>
+
             <button className="hidden sm:block p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors relative">
               <Heart className="h-6 w-6" />
               <span className="absolute top-0 right-0 h-4.5 w-4.5 bg-[var(--color-primary)] text-white text-[11px] font-medium rounded-full flex items-center justify-center">
@@ -138,10 +215,36 @@ export function Header() {
               </div>
             ))}
             <div className="mt-6 space-y-4">
-              <Button variant="secondary" fullWidth>
-                <User className="h-4 w-4" />
-                Sign In
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <div className="px-4 py-3 bg-[var(--color-cream-dark)]">
+                    <p className="font-medium text-[var(--color-charcoal)]">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-sm text-[var(--color-muted)]">
+                      {user?.email}
+                    </p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      logout();
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="secondary" fullWidth>
+                    <User className="h-4 w-4" />
+                    Sign In
+                  </Button>
+                </Link>
+              )}
               <Button variant="primary" fullWidth>
                 <Heart className="h-4 w-4" />
                 Wishlist (3)
