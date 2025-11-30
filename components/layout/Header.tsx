@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Heart,
@@ -10,7 +11,6 @@ import {
   Menu,
   X,
   LogOut,
-  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -28,6 +28,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const router = useRouter();
 
   const { user, isAuthenticated, logout } = useAuth();
 
@@ -38,6 +39,18 @@ export function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleWishlistClick = () => {
+    if (isAuthenticated) {
+      router.push("/account/wishlist");
+    } else {
+      router.push("/auth?redirect=/account/wishlist");
+    }
+  };
+
+  const handleCartClick = () => {
+    router.push("/cart");
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -150,22 +163,38 @@ export function Header() {
                             My Account
                           </Link>
                           <Link
-                            href="/orders"
+                            href="/account/orders"
                             onClick={() => setUserMenuOpen(false)}
                             className="block px-4 py-2 text-sm text-[var(--color-charcoal)] hover:bg-[var(--color-cream-dark)] transition-colors"
                           >
                             Orders
                           </Link>
-                          <button
-                            onClick={() => {
-                              setUserMenuOpen(false);
-                              logout();
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                          <Link
+                            href="/account/wishlist"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="block px-4 py-2 text-sm text-[var(--color-charcoal)] hover:bg-[var(--color-cream-dark)] transition-colors"
                           >
-                            <LogOut className="h-4 w-4" />
-                            Sign Out
-                          </button>
+                            Wishlist
+                          </Link>
+                          <Link
+                            href="/account/settings"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="block px-4 py-2 text-sm text-[var(--color-charcoal)] hover:bg-[var(--color-cream-dark)] transition-colors"
+                          >
+                            Settings
+                          </Link>
+                          <div className="border-t border-[var(--color-border)] mt-2 pt-2">
+                            <button
+                              onClick={() => {
+                                setUserMenuOpen(false);
+                                logout();
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                            >
+                              <LogOut className="h-4 w-4" />
+                              Sign Out
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </>
@@ -180,13 +209,22 @@ export function Header() {
               )}
             </div>
 
-            <button className="hidden sm:block p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors relative">
+            {/* Wishlist button */}
+            <button
+              onClick={handleWishlistClick}
+              className="hidden sm:block p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors relative"
+            >
               <Heart className="h-6 w-6" />
               <span className="absolute top-0 right-0 h-4.5 w-4.5 bg-[var(--color-primary)] text-white text-[11px] font-medium rounded-full flex items-center justify-center">
                 3
               </span>
             </button>
-            <button className="p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors relative">
+
+            {/* Cart button */}
+            <button
+              onClick={handleCartClick}
+              className="p-3 hover:bg-[var(--color-cream-dark)] rounded-full transition-colors relative"
+            >
               <ShoppingBag className="h-6 w-6" />
               <span className="absolute top-0 right-0 h-4.5 w-4.5 bg-[var(--color-primary)] text-white text-[11px] font-medium rounded-full flex items-center justify-center">
                 2
@@ -225,6 +263,15 @@ export function Header() {
                       {user?.email}
                     </p>
                   </div>
+                  <Link
+                    href="/account"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button variant="secondary" fullWidth>
+                      <User className="h-4 w-4" />
+                      My Account
+                    </Button>
+                  </Link>
                   <Button
                     variant="secondary"
                     fullWidth
@@ -245,9 +292,27 @@ export function Header() {
                   </Button>
                 </Link>
               )}
-              <Button variant="primary" fullWidth>
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleWishlistClick();
+                }}
+              >
                 <Heart className="h-4 w-4" />
                 Wishlist (3)
+              </Button>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleCartClick();
+                }}
+              >
+                <ShoppingBag className="h-4 w-4" />
+                Shopping Bag (2)
               </Button>
             </div>
           </nav>
