@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils";
-import { Product, ProductSize, Fabric } from "@/types";
+import type { Product, ProductSize, Fabric } from "@/types/product";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { StarRating } from "@/components/ui/StarRating";
@@ -36,17 +36,44 @@ interface ProductPageProps {
 }
 
 export function ProductPage({ product }: ProductPageProps) {
-  const [selectedSize, setSelectedSize] = useState<ProductSize>(
-    product.sizes[1] || product.sizes[0]
+  // Get default size and fabric
+  const defaultSize =
+    product.sizes.find((s) => s.isDefault) || product.sizes[0];
+  const defaultFabric =
+    product.fabrics.find((f) => f.isDefault) || product.fabrics[0];
+
+  const [selectedSize, setSelectedSize] = useState<ProductSize | null>(
+    defaultSize || null
   );
-  const [selectedFabric, setSelectedFabric] = useState<Fabric>(
-    product.fabrics[0]
+  const [selectedFabric, setSelectedFabric] = useState<Fabric | null>(
+    defaultFabric || null
   );
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const totalPrice = useMemo(() => {
-    return selectedSize.price + (selectedFabric?.price || 0);
+    const sizePrice = selectedSize?.price || product.basePrice;
+    const fabricPrice = selectedFabric?.price || 0;
+    return sizePrice + fabricPrice;
+  }, [selectedSize, selectedFabric, product.basePrice]);
+
+  const originalTotalPrice = useMemo(() => {
+    if (!selectedSize?.originalPrice) return null;
+    const fabricPrice = selectedFabric?.price || 0;
+    return selectedSize.originalPrice + fabricPrice;
   }, [selectedSize, selectedFabric]);
+
+  // Map images for gallery
+  const galleryImages = product.images.map((img) => ({
+    id: img.id,
+    src: img.url,
+    alt: img.altText || product.name,
+    type: img.type === "VIDEO_THUMBNAIL" ? "video-thumbnail" : "image",
+  }));
+
+  // Get category slug for breadcrumb
+  const categorySlug = product.category.toLowerCase();
+  const categoryName =
+    product.category.charAt(0) + product.category.slice(1).toLowerCase();
 
   const whyWeLove = [
     {
@@ -85,18 +112,24 @@ export function ProductPage({ product }: ProductPageProps) {
           </Link>
           <ChevronRight className="h-4 w-4" />
           <Link
-            href="/sofas"
+            href={`/${categorySlug}`}
             className="hover:text-[var(--color-charcoal)] transition-colors"
           >
-            {product.category}
+            {categoryName}
           </Link>
-          <ChevronRight className="h-4 w-4" />
-          <Link
-            href="/sofas/sofa-beds"
-            className="hover:text-[var(--color-charcoal)] transition-colors"
-          >
-            {product.subcategory}
-          </Link>
+          {product.subcategory && (
+            <>
+              <ChevronRight className="h-4 w-4" />
+              <Link
+                href={`/${categorySlug}/${product.subcategory
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")}`}
+                className="hover:text-[var(--color-charcoal)] transition-colors"
+              >
+                {product.subcategory}
+              </Link>
+            </>
+          )}
           <ChevronRight className="h-4 w-4" />
           <span className="text-[var(--color-charcoal)]">{product.name}</span>
         </nav>
@@ -107,10 +140,7 @@ export function ProductPage({ product }: ProductPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Gallery - Takes 7 columns */}
           <div className="lg:col-span-7 lg:sticky lg:top-[120px] lg:self-start">
-            <ProductGallery
-              images={product.images}
-              productName={product.name}
-            />
+            <ProductGallery images={galleryImages} productName={product.name} />
           </div>
 
           {/* Product info - Takes 5 columns */}
@@ -127,9 +157,11 @@ export function ProductPage({ product }: ProductPageProps) {
               <h1 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl text-[var(--color-charcoal)] mb-3">
                 {product.name}
               </h1>
-              <p className="text-lg text-[var(--color-warm-gray)] mb-4">
-                {product.tagline}
-              </p>
+              {product.tagline && (
+                <p className="text-lg text-[var(--color-warm-gray)] mb-4">
+                  {product.tagline}
+                </p>
+              )}
               <div className="flex items-center gap-4">
                 <StarRating
                   rating={product.averageRating}
@@ -144,29 +176,31 @@ export function ProductPage({ product }: ProductPageProps) {
               <span className="text-3xl font-semibold text-[var(--color-charcoal)]">
                 {formatPrice(totalPrice)}
               </span>
-              {selectedSize.originalPrice && (
+              {originalTotalPrice && (
                 <span className="text-lg text-[var(--color-muted)] line-through">
-                  {formatPrice(
-                    selectedSize.originalPrice + (selectedFabric?.price || 0)
-                  )}
+                  {formatPrice(originalTotalPrice)}
                 </span>
               )}
             </div>
 
             {/* Size selector */}
-            <SizeSelector
-              sizes={product.sizes}
-              selectedSize={selectedSize}
-              onSizeSelect={setSelectedSize}
-            />
+            {product.sizes.length > 0 && (
+              <SizeSelector
+                sizes={product.sizes}
+                selectedSize={selectedSize}
+                onSizeSelect={setSelectedSize}
+              />
+            )}
 
             {/* Fabric selector */}
-            <FabricSelector
-              fabrics={product.fabrics}
-              categories={product.fabricCategories}
-              selectedFabric={selectedFabric}
-              onFabricSelect={setSelectedFabric}
-            />
+            {product.fabrics.length > 0 && (
+              <FabricSelector
+                fabrics={product.fabrics}
+                categories={product.fabricCategories}
+                selectedFabric={selectedFabric}
+                onFabricSelect={setSelectedFabric}
+              />
+            )}
 
             {/* Actions */}
             <div className="space-y-4">
@@ -199,7 +233,7 @@ export function ProductPage({ product }: ProductPageProps) {
                 <p className="text-[var(--color-muted)]">
                   Lead time:{" "}
                   <span className="text-[var(--color-charcoal)] font-medium">
-                    {selectedSize.leadTime}
+                    {selectedSize?.leadTime || `${product.leadTimeDays} days`}
                   </span>
                 </p>
               </div>
@@ -211,7 +245,9 @@ export function ProductPage({ product }: ProductPageProps) {
                 <Truck className="h-5 w-5 text-[var(--color-charcoal)] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-[var(--color-charcoal)] text-sm">
-                    {formatPrice(product.deliveryInfo.price)} Delivery
+                    {product.deliveryInfo.price === 0
+                      ? "Free Delivery"
+                      : `${formatPrice(product.deliveryInfo.price)} Delivery`}
                   </p>
                   <p className="text-xs text-[var(--color-muted)]">
                     Expert 2-person team
@@ -259,105 +295,117 @@ export function ProductPage({ product }: ProductPageProps) {
             {/* Description */}
             <div className="prose prose-sm max-w-none">
               <p className="text-[var(--color-warm-gray)] leading-relaxed whitespace-pre-line">
-                {product.longDescription}
+                {product.longDescription || product.description}
               </p>
             </div>
 
             {/* Features */}
-            <ProductFeatures features={product.features} />
+            {product.features.length > 0 && (
+              <ProductFeatures features={product.features} />
+            )}
 
             {/* Accordions */}
             <Accordion allowMultiple defaultOpen={["specs"]}>
-              <AccordionItem id="specs">
-                <AccordionTrigger id="specs">
-                  <span className="text-lg font-medium">Specifications</span>
-                </AccordionTrigger>
-                <AccordionContent id="specs">
-                  <div className="space-y-3">
-                    {product.specifications.map((spec, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between py-2 border-b border-[var(--color-border)] last:border-0"
-                      >
-                        <span className="text-[var(--color-muted)]">
-                          {spec.label}
-                        </span>
-                        <span className="text-[var(--color-charcoal)] text-right max-w-[60%]">
-                          {spec.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem id="dimensions">
-                <AccordionTrigger id="dimensions">
-                  <span className="text-lg font-medium">Dimensions</span>
-                </AccordionTrigger>
-                <AccordionContent id="dimensions">
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-[var(--color-charcoal)]">
-                      {selectedSize.label}
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
-                        <span className="text-[var(--color-muted)]">Width</span>
-                        <span className="font-medium">
-                          {selectedSize.dimensions.width}cm
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
-                        <span className="text-[var(--color-muted)]">Depth</span>
-                        <span className="font-medium">
-                          {selectedSize.dimensions.depth}cm
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
-                        <span className="text-[var(--color-muted)]">
-                          Height
-                        </span>
-                        <span className="font-medium">
-                          {selectedSize.dimensions.height}cm
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
-                        <span className="text-[var(--color-muted)]">
-                          Seat Height
-                        </span>
-                        <span className="font-medium">
-                          {selectedSize.dimensions.seatHeight}cm
-                        </span>
-                      </div>
+              {product.specifications.length > 0 && (
+                <AccordionItem id="specs">
+                  <AccordionTrigger id="specs">
+                    <span className="text-lg font-medium">Specifications</span>
+                  </AccordionTrigger>
+                  <AccordionContent id="specs">
+                    <div className="space-y-3">
+                      {product.specifications.map((spec, index) => (
+                        <div
+                          key={index}
+                          className="flex justify-between py-2 border-b border-[var(--color-border)] last:border-0"
+                        >
+                          <span className="text-[var(--color-muted)]">
+                            {spec.label}
+                          </span>
+                          <span className="text-[var(--color-charcoal)] text-right max-w-[60%]">
+                            {spec.value}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                    {selectedSize.bedDimensions && (
-                      <div>
-                        <h4 className="font-medium text-[var(--color-charcoal)] mb-2">
-                          Bed Dimensions
-                        </h4>
-                        <div className="grid grid-cols-2 gap-3 text-sm">
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
+              {selectedSize && (
+                <AccordionItem id="dimensions">
+                  <AccordionTrigger id="dimensions">
+                    <span className="text-lg font-medium">Dimensions</span>
+                  </AccordionTrigger>
+                  <AccordionContent id="dimensions">
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-[var(--color-charcoal)]">
+                        {selectedSize.label}
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
+                          <span className="text-[var(--color-muted)]">
+                            Width
+                          </span>
+                          <span className="font-medium">
+                            {selectedSize.dimensions.width}cm
+                          </span>
+                        </div>
+                        <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
+                          <span className="text-[var(--color-muted)]">
+                            Depth
+                          </span>
+                          <span className="font-medium">
+                            {selectedSize.dimensions.depth}cm
+                          </span>
+                        </div>
+                        <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
+                          <span className="text-[var(--color-muted)]">
+                            Height
+                          </span>
+                          <span className="font-medium">
+                            {selectedSize.dimensions.height}cm
+                          </span>
+                        </div>
+                        {selectedSize.dimensions.seatHeight && (
                           <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
                             <span className="text-[var(--color-muted)]">
-                              Width
+                              Seat Height
                             </span>
                             <span className="font-medium">
-                              {selectedSize.bedDimensions.width}cm
+                              {selectedSize.dimensions.seatHeight}cm
                             </span>
                           </div>
-                          <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
-                            <span className="text-[var(--color-muted)]">
-                              Length
-                            </span>
-                            <span className="font-medium">
-                              {selectedSize.bedDimensions.length}cm
-                            </span>
+                        )}
+                      </div>
+                      {selectedSize.bedDimensions && (
+                        <div>
+                          <h4 className="font-medium text-[var(--color-charcoal)] mb-2">
+                            Bed Dimensions
+                          </h4>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
+                              <span className="text-[var(--color-muted)]">
+                                Width
+                              </span>
+                              <span className="font-medium">
+                                {selectedSize.bedDimensions.width}cm
+                              </span>
+                            </div>
+                            <div className="flex justify-between p-3 bg-[var(--color-cream-dark)]">
+                              <span className="text-[var(--color-muted)]">
+                                Length
+                              </span>
+                              <span className="font-medium">
+                                {selectedSize.bedDimensions.length}cm
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
 
               <AccordionItem id="delivery">
                 <AccordionTrigger id="delivery">
@@ -372,7 +420,14 @@ export function ProductPage({ product }: ProductPageProps) {
                         Delivery
                       </h4>
                       <p className="text-[var(--color-warm-gray)]">
-                        {product.deliveryInfo.description}
+                        {product.deliveryInfo.description ||
+                          `White glove delivery by our expert 2-person team. ${
+                            product.deliveryInfo.price === 0
+                              ? "Free delivery."
+                              : `Delivery cost: ${formatPrice(
+                                  product.deliveryInfo.price
+                                )}.`
+                          }`}
                       </p>
                     </div>
                     <div>
@@ -380,31 +435,36 @@ export function ProductPage({ product }: ProductPageProps) {
                         Returns
                       </h4>
                       <p className="text-[var(--color-warm-gray)]">
-                        {product.returns.description}
+                        {product.returns.description ||
+                          `${product.returns.days}-day trial. If you're not completely satisfied, we'll arrange a free return.`}
                       </p>
                     </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem id="care">
-                <AccordionTrigger id="care">
-                  <span className="text-lg font-medium">Care Instructions</span>
-                </AccordionTrigger>
-                <AccordionContent id="care">
-                  <ul className="space-y-2">
-                    {product.careInstructions.map((instruction, index) => (
-                      <li
-                        key={index}
-                        className="flex items-start gap-2 text-[var(--color-warm-gray)]"
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-taupe)] mt-2 flex-shrink-0" />
-                        {instruction}
-                      </li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
+              {product.careInstructions.length > 0 && (
+                <AccordionItem id="care">
+                  <AccordionTrigger id="care">
+                    <span className="text-lg font-medium">
+                      Care Instructions
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent id="care">
+                    <ul className="space-y-2">
+                      {product.careInstructions.map((instruction, index) => (
+                        <li
+                          key={index}
+                          className="flex items-start gap-2 text-[var(--color-warm-gray)]"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-taupe)] mt-2 flex-shrink-0" />
+                          {instruction}
+                        </li>
+                      ))}
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
             </Accordion>
           </div>
         </div>
@@ -440,35 +500,41 @@ export function ProductPage({ product }: ProductPageProps) {
       </div>
 
       {/* Reviews section */}
-      <div className="bg-white py-16">
-        <div className="w-full px-4 md:px-8 lg:px-12">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl md:text-3xl text-[var(--color-charcoal)] mb-8">
-            Customer Reviews
-          </h2>
-          <ProductReviews
-            reviews={product.reviews}
-            averageRating={product.averageRating}
-            totalReviews={product.totalReviews}
-          />
+      {product.totalReviews > 0 && (
+        <div className="bg-white py-16">
+          <div className="w-full px-4 md:px-8 lg:px-12">
+            <h2 className="font-[family-name:var(--font-display)] text-2xl md:text-3xl text-[var(--color-charcoal)] mb-8">
+              Customer Reviews
+            </h2>
+            <ProductReviews
+              reviews={product.reviews}
+              averageRating={product.averageRating}
+              totalReviews={product.totalReviews}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Related products */}
-      <div className="w-full px-4 md:px-8 lg:px-12 py-16">
-        <RelatedProducts products={product.relatedProducts} />
-      </div>
+      {product.relatedProducts.length > 0 && (
+        <div className="w-full px-4 md:px-8 lg:px-12 py-16">
+          <RelatedProducts products={product.relatedProducts} />
+        </div>
+      )}
 
       {/* Made in section */}
-      <div className="bg-[var(--color-cream-dark)] py-16">
-        <div className="w-full px-4 md:px-8 lg:px-12 text-center">
-          <p className="text-sm text-[var(--color-muted)] mb-2">
-            Handcrafted in
-          </p>
-          <p className="font-[family-name:var(--font-display)] text-2xl text-[var(--color-charcoal)]">
-            {product.madeIn}
-          </p>
+      {product.madeIn && (
+        <div className="bg-[var(--color-cream-dark)] py-16">
+          <div className="w-full px-4 md:px-8 lg:px-12 text-center">
+            <p className="text-sm text-[var(--color-muted)] mb-2">
+              Handcrafted in
+            </p>
+            <p className="font-[family-name:var(--font-display)] text-2xl text-[var(--color-charcoal)]">
+              {product.madeIn}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { ThumbsUp, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ProductReview } from "@/types";
+import type { ProductReview } from "@/types/product";
 import { StarRating } from "@/components/ui/StarRating";
 import { Button } from "@/components/ui/Button";
+import { productsService } from "@/services/product.service";
 
 interface ProductReviewsProps {
   reviews: ProductReview[];
@@ -26,10 +27,20 @@ export function ProductReviews({
     rating,
     count: reviews.filter((r) => Math.floor(r.rating) === rating).length,
     percentage:
-      (reviews.filter((r) => Math.floor(r.rating) === rating).length /
-        reviews.length) *
-      100,
+      reviews.length > 0
+        ? (reviews.filter((r) => Math.floor(r.rating) === rating).length /
+            reviews.length) *
+          100
+        : 0,
   }));
+
+  if (reviews.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-[var(--color-muted)]">No reviews yet.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -99,11 +110,20 @@ export function ProductReviews({
 function ReviewCard({ review }: { review: ProductReview }) {
   const [helpful, setHelpful] = useState(false);
   const [helpfulCount, setHelpfulCount] = useState(review.helpful);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleHelpful = () => {
-    if (!helpful) {
+  const handleHelpful = async () => {
+    if (helpful || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const result = await productsService.markReviewHelpful(review.id);
       setHelpful(true);
-      setHelpfulCount((prev) => prev + 1);
+      setHelpfulCount(result.helpful);
+    } catch (error) {
+      console.error("Failed to mark review as helpful:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -139,7 +159,7 @@ function ReviewCard({ review }: { review: ProductReview }) {
         <p className="text-sm text-[var(--color-muted)]">{review.author}</p>
         <button
           onClick={handleHelpful}
-          disabled={helpful}
+          disabled={helpful || isLoading}
           className={cn(
             "flex items-center gap-2 text-sm transition-colors",
             helpful

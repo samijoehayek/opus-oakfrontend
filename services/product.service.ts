@@ -1,10 +1,12 @@
 import { apiClient } from "@/lib/api-client";
 import type {
   Product,
+  ProductListItem,
   ProductListResponse,
   CategoryMetadata,
   ProductQueryParams,
   ProductSortBy,
+  CreateReviewData,
 } from "@/types/product";
 
 // Map frontend sort values to backend format
@@ -86,11 +88,11 @@ class ProductsService {
     categorySlug: string,
     sortBy: ProductSortBy = "featured",
     limit: number = 50
-  ): Promise<Product[]> {
+  ): Promise<ProductListItem[]> {
     const categoryEnum = mapCategorySlugToEnum(categorySlug);
     const backendSortBy = mapSortBy(sortBy);
 
-    return apiClient.get<Product[]>(
+    return apiClient.get<ProductListItem[]>(
       `/products/category/${categoryEnum}?sortBy=${backendSortBy}&limit=${limit}`
     );
   }
@@ -114,15 +116,41 @@ class ProductsService {
   /**
    * Get featured products
    */
-  async getFeaturedProducts(limit: number = 8): Promise<Product[]> {
-    return apiClient.get<Product[]>(`/products/featured?limit=${limit}`);
+  async getFeaturedProducts(limit: number = 8): Promise<ProductListItem[]> {
+    return apiClient.get<ProductListItem[]>(
+      `/products/featured?limit=${limit}`
+    );
   }
 
   /**
-   * Get single product by ID or slug
+   * Get single product (basic info)
    */
-  async getProduct(idOrSlug: string): Promise<Product> {
-    return apiClient.get<Product>(`/products/${idOrSlug}`);
+  async getProduct(idOrSlug: string): Promise<ProductListItem> {
+    return apiClient.get<ProductListItem>(`/products/${idOrSlug}`);
+  }
+
+  /**
+   * Get single product (full detail)
+   */
+  async getProductDetail(idOrSlug: string): Promise<Product> {
+    return apiClient.get<Product>(`/products/${idOrSlug}/detail`);
+  }
+
+  /**
+   * Add a review to a product
+   */
+  async addReview(productId: string, data: CreateReviewData): Promise<Product> {
+    return apiClient.post<Product>(`/products/${productId}/reviews`, data);
+  }
+
+  /**
+   * Mark a review as helpful
+   */
+  async markReviewHelpful(reviewId: string): Promise<{ helpful: number }> {
+    return apiClient.post<{ helpful: number }>(
+      `/products/reviews/${reviewId}/helpful`,
+      {}
+    );
   }
 }
 

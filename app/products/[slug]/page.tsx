@@ -1,30 +1,17 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductPage } from "@/components/product/ProductPage";
-import { mockProduct } from "@/data/products";
+import { productsService } from "@/services/product.service";
 
-// In a real app, this would fetch from your backend
+// Fetch product data on the server
 async function getProduct(slug: string) {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 100));
-
-  // For now, return mock product for matching slugs
-  if (
-    slug === "squisharoo-sofa-bed-non-flat-pack" ||
-    slug === mockProduct.slug
-  ) {
-    return mockProduct;
+  try {
+    const product = await productsService.getProductDetail(slug);
+    return product;
+  } catch (error) {
+    console.error("Failed to fetch product:", error);
+    return null;
   }
-
-  // Return mock product for any product slug (for demo purposes)
-  return {
-    ...mockProduct,
-    slug,
-    name: slug
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" "),
-  };
 }
 
 export async function generateMetadata({
@@ -37,24 +24,30 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: "Product Not Found | Loaf",
+      title: "Product Not Found | Opus&Oak",
     };
   }
 
+  const primaryImage =
+    product.images.find((img: { isPrimary: any }) => img.isPrimary) ||
+    product.images[0];
+
   return {
-    title: `${product.name} | Loaf`,
-    description: product.description,
+    title: `${product.name} | Opus&Oak`,
+    description: product.tagline || product.description.slice(0, 160),
     openGraph: {
-      title: `${product.name} | Loaf`,
-      description: product.description,
-      images: [
-        {
-          url: product.images[0]?.src || "",
-          width: 1200,
-          height: 630,
-          alt: product.name,
-        },
-      ],
+      title: `${product.name} | Opus&Oak`,
+      description: product.tagline || product.description.slice(0, 160),
+      images: primaryImage
+        ? [
+            {
+              url: primaryImage.url,
+              width: 1200,
+              height: 630,
+              alt: primaryImage.altText || product.name,
+            },
+          ]
+        : [],
     },
   };
 }

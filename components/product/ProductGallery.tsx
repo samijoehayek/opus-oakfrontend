@@ -5,10 +5,16 @@ import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, ZoomIn, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ProductImage } from "@/types";
+
+interface GalleryImage {
+  id: string;
+  src: string;
+  alt: string;
+  type?: string;
+}
 
 interface ProductGalleryProps {
-  images: ProductImage[];
+  images: GalleryImage[];
   productName: string;
 }
 
@@ -39,7 +45,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     if (!emblaApi || !thumbApi) return;
     const index = emblaApi.selectedScrollSnap();
     setSelectedIndex(index);
-    // Scroll thumbnails to keep selected in view
     const thumbsPerView = 4;
     const thumbScrollIndex = Math.floor(index / thumbsPerView) * thumbsPerView;
     thumbApi.scrollTo(
@@ -55,6 +60,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
       emblaApi.off("select", onSelect);
     };
   }, [emblaApi, onSelect]);
+
+  // Fallback if no images
+  if (images.length === 0) {
+    return (
+      <div className="aspect-[4/3] bg-[var(--color-cream-dark)] flex items-center justify-center">
+        <p className="text-[var(--color-muted)]">No images available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -91,20 +105,24 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         </div>
 
         {/* Navigation arrows */}
-        <button
-          onClick={scrollPrev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/90 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-          aria-label="Previous image"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <button
-          onClick={scrollNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/90 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-          aria-label="Next image"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </button>
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={scrollPrev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/90 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              onClick={scrollNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/90 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+              aria-label="Next image"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </>
+        )}
 
         {/* Zoom button */}
         <button
@@ -120,53 +138,57 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         </div>
       </div>
 
-      {/* Thumbnail strip - single row, 4 visible at a time */}
-      <div className="hidden md:block overflow-hidden" ref={thumbRef}>
-        <div className="flex gap-3">
-          {images.map((image, index) => (
-            <button
-              key={image.id}
-              onClick={() => scrollTo(index)}
-              className={cn(
-                "relative flex-[0_0_calc(25%-9px)] aspect-[4/3] overflow-hidden transition-all bg-[var(--color-cream-dark)]",
-                selectedIndex === index
-                  ? "ring-2 ring-[var(--color-charcoal)]"
-                  : "opacity-70 hover:opacity-100"
-              )}
-            >
-              <Image
-                src={image.src}
-                alt={image.alt}
-                fill
-                className="object-cover"
-                sizes="15vw"
-              />
-              {image.type === "video-thumbnail" && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <Play className="h-5 w-5 text-white" />
-                </div>
-              )}
-            </button>
-          ))}
+      {/* Thumbnail strip */}
+      {images.length > 1 && (
+        <div className="hidden md:block overflow-hidden" ref={thumbRef}>
+          <div className="flex gap-3">
+            {images.map((image, index) => (
+              <button
+                key={image.id}
+                onClick={() => scrollTo(index)}
+                className={cn(
+                  "relative flex-[0_0_calc(25%-9px)] aspect-[4/3] overflow-hidden transition-all bg-[var(--color-cream-dark)]",
+                  selectedIndex === index
+                    ? "ring-2 ring-[var(--color-charcoal)]"
+                    : "opacity-70 hover:opacity-100"
+                )}
+              >
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  className="object-cover"
+                  sizes="15vw"
+                />
+                {image.type === "video-thumbnail" && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <Play className="h-5 w-5 text-white" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile dots */}
-      <div className="flex md:hidden justify-center gap-2">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollTo(index)}
-            className={cn(
-              "h-2 transition-all",
-              selectedIndex === index
-                ? "w-8 bg-[var(--color-charcoal)]"
-                : "w-2 bg-[var(--color-sand)]"
-            )}
-            aria-label={`Go to image ${index + 1}`}
-          />
-        ))}
-      </div>
+      {images.length > 1 && (
+        <div className="flex md:hidden justify-center gap-2">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollTo(index)}
+              className={cn(
+                "h-2 transition-all",
+                selectedIndex === index
+                  ? "w-8 bg-[var(--color-charcoal)]"
+                  : "w-2 bg-[var(--color-sand)]"
+              )}
+              aria-label={`Go to image ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

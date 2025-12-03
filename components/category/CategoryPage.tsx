@@ -9,11 +9,10 @@ import { ProductGrid } from "./ProductGrid";
 import { CategoryPageSkeleton } from "./CategoryPageSkeleton";
 import { productsService } from "@/services/product.service";
 import type {
-  Product,
+  ProductListItem, // Changed from Product
   CategoryMetadata,
   ProductSortBy,
   CategoryProduct,
-  mapProductToCategoryProduct,
 } from "@/types/product";
 
 interface CategoryPageProps {
@@ -22,7 +21,7 @@ interface CategoryPageProps {
 
 export function CategoryPage({ categorySlug }: CategoryPageProps) {
   const [sortBy, setSortBy] = useState<ProductSortBy>("featured");
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductListItem[]>([]); // Changed from Product[]
   const [categoryMetadata, setCategoryMetadata] =
     useState<CategoryMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(true);

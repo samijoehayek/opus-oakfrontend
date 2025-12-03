@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils";
-import { Fabric, FabricCategory } from "@/types";
+import type { Fabric, FabricCategory } from "@/types/product";
 import { Check, Truck, Plus } from "lucide-react";
 
 interface FabricSelectorProps {
@@ -25,8 +24,11 @@ export function FabricSelector({
   );
   const [showAll, setShowAll] = useState(false);
 
+  if (fabrics.length === 0 || categories.length === 0) return null;
+
   const filteredFabrics = fabrics.filter(
-    (fabric) => fabric.category === activeCategory
+    (fabric) =>
+      fabric.category === categories.find((c) => c.id === activeCategory)?.name
   );
   const displayedFabrics = showAll
     ? filteredFabrics
@@ -148,7 +150,7 @@ export function FabricSelector({
               {selectedFabric.name}
             </p>
             <p className="text-sm text-[var(--color-muted)]">
-              {categories.find((c) => c.id === selectedFabric.category)?.name}
+              {selectedFabric.category}
             </p>
             {selectedFabric.price > 0 && (
               <p className="text-sm text-[var(--color-primary)]">

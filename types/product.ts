@@ -1,5 +1,5 @@
 // ============================================
-// PRODUCT TYPES
+// ENUMS
 // ============================================
 
 export type FurnitureCategory =
@@ -12,32 +12,142 @@ export type FurnitureCategory =
   | "OUTDOOR"
   | "ACCESSORIES";
 
+export type ImageType =
+  | "PHOTO"
+  | "VIDEO_THUMBNAIL"
+  | "LIFESTYLE"
+  | "DETAIL"
+  | "DIMENSION";
+
+// ============================================
+// PRODUCT LIST TYPES (for category pages)
+// ============================================
+
 export interface ProductImage {
   id: string;
   url: string;
   altText?: string;
+  type: ImageType;
   sortOrder: number;
   isPrimary: boolean;
 }
 
-export interface MaterialOption {
+export interface ProductListItem {
   id: string;
+  sku: string;
+  slug: string;
   name: string;
-  type: string;
-  priceModifier: number;
-  textureUrl?: string;
-  isDefault: boolean;
-  isAvailable: boolean;
+  tagline?: string;
+  description: string;
+  badge?: string;
+  category: FurnitureCategory;
+  basePrice: number;
+  originalPrice?: number;
+  images: ProductImage[];
+  optionCount: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  createdAt: string;
 }
 
-export interface ColorOption {
+export interface ProductListResponse {
+  products: ProductListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// ============================================
+// PRODUCT DETAIL TYPES
+// ============================================
+
+export interface ProductSize {
+  id: string;
+  label: string;
+  sku?: string;
+  price: number;
+  originalPrice?: number;
+  dimensions: {
+    width: number;
+    height: number;
+    depth: number;
+    seatHeight?: number;
+  };
+  bedDimensions?: {
+    width: number;
+    length: number;
+  };
+  inStock: boolean;
+  leadTime?: string;
+  sortOrder: number;
+  isDefault: boolean;
+}
+
+export interface Fabric {
   id: string;
   name: string;
-  hexCode: string;
-  priceModifier: number;
+  hexColor: string;
   textureUrl?: string;
+  price: number;
+  inStock: boolean;
+  category: string;
+  sortOrder: number;
   isDefault: boolean;
-  isAvailable: boolean;
+}
+
+export interface FabricCategory {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
+export interface ProductFeature {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface ProductSpecification {
+  label: string;
+  value: string;
+}
+
+export interface ProductReview {
+  id: string;
+  author: string;
+  rating: number;
+  title: string;
+  content: string;
+  verified: boolean;
+  helpful: number;
+  date: string;
+}
+
+export interface RelatedProduct {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  price: number;
+  originalPrice?: number;
+  imageUrl: string;
+}
+
+export interface DeliveryInfo {
+  price: number;
+  description?: string;
+}
+
+export interface ReturnsInfo {
+  days: number;
+  description?: string;
+}
+
+export interface WarrantyInfo {
+  years: number;
+  description?: string;
 }
 
 export interface Product {
@@ -47,34 +157,54 @@ export interface Product {
   name: string;
   tagline?: string;
   description: string;
+  longDescription?: string;
   story?: string;
   badge?: string;
-  category: FurnitureCategory;
+  category: string;
+  subcategory?: string;
   basePrice: number;
   originalPrice?: number;
-  width?: number;
-  height?: number;
-  depth?: number;
-  weight?: number;
-  modelUrl?: string;
-  modelThumbnail?: string;
-  leadTimeDays: number;
+
+  // Media
+  images: ProductImage[];
+
+  // Variants
+  sizes: ProductSize[];
+  fabricCategories: FabricCategory[];
+  fabrics: Fabric[];
+
+  // Features & Specs
+  features: ProductFeature[];
+  specifications: ProductSpecification[];
+
+  // Delivery & Returns
+  deliveryInfo: DeliveryInfo;
+  returns: ReturnsInfo;
+  warranty: WarrantyInfo;
+
+  // Additional
+  assembly?: string;
+  madeIn?: string;
+  careInstructions: string[];
+
+  // Reviews
+  averageRating: number;
+  totalReviews: number;
+  reviews: ProductReview[];
+
+  // Related
+  relatedProducts: RelatedProduct[];
+
+  // Badges
+  badges: string[];
+
+  // Status
   isActive: boolean;
   isFeatured: boolean;
-  images: ProductImage[];
-  materialOptions: MaterialOption[];
-  colorOptions: ColorOption[];
-  optionCount: number;
+  leadTimeDays: number;
+
   createdAt: string;
   updatedAt: string;
-}
-
-export interface ProductListResponse {
-  products: Product[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 // ============================================
@@ -114,7 +244,7 @@ export interface ProductQueryParams {
 // MAPPED TYPES FOR COMPONENTS
 // ============================================
 
-// Type used by ProductCard component
+// Type used by ProductCard component in category pages
 export interface CategoryProduct {
   id: string;
   slug: string;
@@ -130,8 +260,10 @@ export interface CategoryProduct {
   fabricCount?: number;
 }
 
-// Helper to map API Product to CategoryProduct
-export function mapProductToCategoryProduct(product: Product): CategoryProduct {
+// Helper to map API ProductListItem to CategoryProduct
+export function mapProductToCategoryProduct(
+  product: ProductListItem
+): CategoryProduct {
   return {
     id: product.id,
     slug: product.slug,
@@ -146,4 +278,16 @@ export function mapProductToCategoryProduct(product: Product): CategoryProduct {
     badge: product.badge,
     fabricCount: product.optionCount > 0 ? product.optionCount : undefined,
   };
+}
+
+// ============================================
+// REVIEW SUBMISSION
+// ============================================
+
+export interface CreateReviewData {
+  author: string;
+  email?: string;
+  rating: number;
+  title: string;
+  content: string;
 }

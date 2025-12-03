@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils";
-import { ProductSize } from "@/types";
+import type { ProductSize } from "@/types/product";
 import { Check, Info } from "lucide-react";
 
 interface SizeSelectorProps {
@@ -16,6 +16,8 @@ export function SizeSelector({
   selectedSize,
   onSizeSelect,
 }: SizeSelectorProps) {
+  if (sizes.length === 0) return null;
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
