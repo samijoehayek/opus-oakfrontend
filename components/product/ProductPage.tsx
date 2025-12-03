@@ -24,7 +24,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/Accordion";
-import { ProductGallery } from "./ProductGallery";
+import { ProductMediaGallery } from "./viewer3d"; // NEW IMPORT
 import { SizeSelector } from "./SizeSelector";
 import { FabricSelector } from "./FabricSelector";
 import { ProductFeatures } from "./ProductFeatures";
@@ -140,7 +140,11 @@ export function ProductPage({ product }: ProductPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Gallery - Takes 7 columns */}
           <div className="lg:col-span-7 lg:sticky lg:top-[120px] lg:self-start">
-            <ProductGallery images={galleryImages} productName={product.name} />
+            <ProductMediaGallery
+              images={product.images}
+              model={product.model}
+              productName={product.name}
+            />
           </div>
 
           {/* Product info - Takes 5 columns */}

@@ -5,3 +5,4 @@ export { FabricSelector } from "./FabricSelector";
 export { ProductFeatures } from "./ProductFeatures";
 export { ProductReviews } from "./ProductReviews";
 export { RelatedProducts } from "./RelatedProducts";
+export { ModelViewer, ProductMediaGallery } from "./viewer3d";

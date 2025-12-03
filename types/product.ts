@@ -19,6 +19,56 @@ export type ImageType =
   | "DETAIL"
   | "DIMENSION";
 
+export type ModelFormat = "GLB" | "GLTF" | "FBX" | "OBJ" | "USDZ";
+
+export type EnvironmentPreset =
+  | "studio"
+  | "apartment"
+  | "city"
+  | "dawn"
+  | "forest"
+  | "lobby"
+  | "night"
+  | "park"
+  | "sunset"
+  | "warehouse";
+
+// ============================================
+// 3D MODEL TYPES
+// ============================================
+
+export interface ProductModel {
+  id: string;
+  lowPolyUrl: string;
+  highPolyUrl?: string;
+  format: ModelFormat;
+  fileSizeLowPoly?: number;
+  fileSizeHighPoly?: number;
+  posterUrl?: string;
+  environmentPreset: string;
+  backgroundColor?: string;
+  cameraPosition: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  cameraTarget: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  controls: {
+    autoRotate: boolean;
+    autoRotateSpeed: number;
+    enableZoom: boolean;
+    enablePan: boolean;
+    minDistance: number;
+    maxDistance: number;
+  };
+  scale: number;
+  isActive: boolean;
+}
+
 // ============================================
 // PRODUCT LIST TYPES (for category pages)
 // ============================================
@@ -167,6 +217,7 @@ export interface Product {
 
   // Media
   images: ProductImage[];
+  model?: ProductModel; // 3D Model
 
   // Variants
   sizes: ProductSize[];
@@ -244,7 +295,6 @@ export interface ProductQueryParams {
 // MAPPED TYPES FOR COMPONENTS
 // ============================================
 
-// Type used by ProductCard component in category pages
 export interface CategoryProduct {
   id: string;
   slug: string;
@@ -260,7 +310,6 @@ export interface CategoryProduct {
   fabricCount?: number;
 }
 
-// Helper to map API ProductListItem to CategoryProduct
 export function mapProductToCategoryProduct(
   product: ProductListItem
 ): CategoryProduct {
