@@ -1,60 +1,121 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { notFound } from "next/navigation";
 import { CategoryHero } from "./CategoryHero";
 import { CategoryIntro } from "./CategoryIntro";
 import { CategoryFilter } from "./CategoryFilter";
 import { ProductGrid } from "./ProductGrid";
-import {
-  getCategoryConfig,
-  getProductsByCategory,
+import { CategoryPageSkeleton } from "./CategoryPageSkeleton";
+import { productsService } from "@/services/product.service";
+import type {
+  Product,
+  CategoryMetadata,
+  ProductSortBy,
   CategoryProduct,
-} from "@/data/categories";
+  mapProductToCategoryProduct,
+} from "@/types/product";
 
 interface CategoryPageProps {
   categorySlug: string;
 }
 
 export function CategoryPage({ categorySlug }: CategoryPageProps) {
-  const [sortBy, setSortBy] = useState("featured");
+  const [sortBy, setSortBy] = useState<ProductSortBy>("featured");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categoryMetadata, setCategoryMetadata] =
+    useState<CategoryMetadata | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const config = getCategoryConfig(categorySlug);
-  const categoryProducts = getProductsByCategory(categorySlug);
+  // Fetch category metadata and products
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
 
-  if (!config) {
-    notFound();
+      try {
+        // Fetch both in parallel
+        const [metadata, productList] = await Promise.all([
+          productsService.getCategoryMetadata(categorySlug),
+          productsService.getProductsByCategory(categorySlug, sortBy),
+        ]);
+
+        setCategoryMetadata(metadata);
+        setProducts(productList);
+      } catch (err) {
+        console.error("Failed to fetch category data:", err);
+        setError("Failed to load products. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [categorySlug, sortBy]);
+
+  // Map products to CategoryProduct format for ProductCard
+  const categoryProducts: CategoryProduct[] = useMemo(() => {
+    return products.map((product) => ({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      tagline: product.tagline || product.description.slice(0, 100),
+      price: product.basePrice,
+      originalPrice: product.originalPrice,
+      images: product.images.map((img) => ({
+        src: img.url,
+        alt: img.altText || product.name,
+      })),
+      badge: product.badge,
+      fabricCount: product.optionCount > 0 ? product.optionCount : undefined,
+    }));
+  }, [products]);
+
+  // Show loading skeleton
+  if (isLoading) {
+    return <CategoryPageSkeleton />;
   }
 
-  const sortedProducts = useMemo(() => {
-    const products = [...categoryProducts];
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[var(--color-background)] pt-[88px] flex items-center justify-center">
+        <div className="text-center px-4">
+          <p className="text-[var(--color-charcoal)] text-lg mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-[var(--color-charcoal)] text-white font-medium hover:bg-[var(--color-ink)] transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-    switch (sortBy) {
-      case "price-asc":
-        return products.sort((a, b) => a.price - b.price);
-      case "price-desc":
-        return products.sort((a, b) => b.price - a.price);
-      case "newest":
-        return products.reverse();
-      default:
-        return products;
-    }
-  }, [categoryProducts, sortBy]);
+  // Show 404 if no metadata found
+  if (!categoryMetadata) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] pt-[20px]">
       <CategoryHero
-        title={config.title}
-        description={config.description}
-        heroImage={config.heroImage}
+        title={categoryMetadata.title}
+        description={categoryMetadata.description}
+        heroImage={categoryMetadata.heroImage}
       />
-      <CategoryIntro title={config.introTitle} text={config.introText} />
+      <CategoryIntro
+        title={categoryMetadata.introTitle}
+        text={categoryMetadata.introText}
+      />
       <CategoryFilter
-        totalProducts={sortedProducts.length}
+        totalProducts={categoryProducts.length}
         sortBy={sortBy}
-        onSortChange={setSortBy}
+        onSortChange={(value) => setSortBy(value as ProductSortBy)}
       />
-      <ProductGrid products={sortedProducts} />
+      <ProductGrid products={categoryProducts} />
     </div>
   );
 }

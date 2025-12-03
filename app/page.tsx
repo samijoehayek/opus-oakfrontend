@@ -12,7 +12,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-screen overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1920&h=1080&fit=crop"
+          src="/hero1-ai.png"
           alt="Beautiful living room with Loaf sofa"
           fill
           priority
